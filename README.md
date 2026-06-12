@@ -2,16 +2,17 @@
 
 # 🏛️ NGO Impact Engine
 
-### An Open-Source M&E KPI Framework for Social Impact Measurement
+### An End-to-End Data Engineering Pipeline for Social Impact Measurement
 
+[![CI](https://github.com/devkarx/NGO-Impact-Engine/actions/workflows/lint_and_test.yml/badge.svg)](https://github.com/devkarx/NGO-Impact-Engine/actions)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab?logo=python&logoColor=white)](https://python.org)
 [![pandas](https://img.shields.io/badge/pandas-2.0%2B-150458?logo=pandas)](https://pandas.pydata.org)
 [![SQLite](https://img.shields.io/badge/SQLite-3.35%2B-003B57?logo=sqlite)](https://sqlite.org)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![IRIS+](https://img.shields.io/badge/IRIS%2B-GIIN%20Aligned-blue)](https://iris.thegiin.org)
 
-*A production-ready, reusable data pipeline that transforms raw NGO field data into*  
-*actionable impact KPIs — designed to be forked by any small-to-medium NGO.*
+**A containerised, CI-tested data pipeline that ingests messy NGO field data through a 7-step cleaning waterfall, loads it into a 13-table Star Schema, and materialises 4 IRIS+-aligned KPI views — all executing in under 17ms combined.** Built with Python, pandas, and SQL (CTEs + window functions), and designed to be forked by any small-to-medium NGO to power their Metabase, Power BI, or Tableau dashboard.
 
 ---
 
