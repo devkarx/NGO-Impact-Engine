@@ -1,0 +1,44 @@
+# ===========================================================================
+# NGO Impact Dashboard — Docker Compose
+# ===========================================================================
+# Orchestrates:
+#   1. pipeline  — runs the full data pipeline (generate → clean → views)
+#   2. metabase  — optional BI dashboard connected to the clean database
+#
+# Usage:
+#   docker compose up pipeline          # run pipeline only
+#   docker compose up metabase          # start Metabase dashboard
+#   docker compose up                   # run both
+# ===========================================================================
+
+services:
+  # ── Data Pipeline ────────────────────────────────────────────────────────
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ngo-pipeline
+    volumes:
+      # Mount output directory so results persist on the host
+      - ./output:/app/output
+    environment:
+      - PYTHONPATH=/app
+    command: ["make", "run-all"]
+
+  # ── Metabase BI Dashboard (optional) ─────────────────────────────────────
+  metabase:
+    image: metabase/metabase:latest
+    container_name: ngo-metabase
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the clean database into Metabase's data directory
+      - ./output/cleaned:/data
+    environment:
+      # Auto-configure Metabase to use the SQLite database
+      MB_DB_TYPE: h2
+      MB_DB_FILE: /metabase-data/metabase.db
+    depends_on:
+      pipeline:
+        condition: service_completed_successfully
+    restart: unless-stopped

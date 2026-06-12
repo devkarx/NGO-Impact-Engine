@@ -1,0 +1,139 @@
+# ===========================================================================
+# NGO Impact Dashboard — CI Pipeline
+# ===========================================================================
+# Triggers: push to main/develop, pull requests to main
+#
+# Jobs:
+#   1. lint     — ruff for style + flake8 for PEP 8 compliance
+#   2. test     — run the full pipeline and validate KPI query performance
+#
+# Design decisions:
+#   - Uses ruff (fast, Rust-based) as primary linter, flake8 as fallback
+#   - Matrix strategy for Python 3.10, 3.11, 3.12 compatibility
+#   - Caches pip dependencies for faster CI runs
+# ===========================================================================
+
+name: Lint & Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Job 1: Linting ──────────────────────────────────────────────────────
+  lint:
+    name: Lint (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff flake8
+
+      - name: Run ruff (fast lint)
+        run: |
+          ruff check . --output-format=github
+
+      - name: Run flake8 (PEP 8 compliance)
+        run: |
+          flake8 . \
+            --count \
+            --max-line-length=120 \
+            --max-complexity=15 \
+            --statistics \
+            --exclude=__pycache__,.venv,output \
+            --ignore=E501,W503,E203
+
+  # ── Job 2: Pipeline Integration Test ────────────────────────────────────
+  test:
+    name: Pipeline Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Phase 1 — Generate synthetic data
+        run: python -m phase1_data_architecture.main
+
+      - name: Phase 2 — Clean data
+        run: python -m phase2_cleaning.main
+
+      - name: Phase 4 — Create BI views
+        run: python create_bi_views.py
+
+      - name: Phase 3 — Validate KPI queries (< 3s target)
+        run: python validate_kpis.py
+
+      - name: Verify output artifacts exist
+        run: |
+          echo "--- Checking output files ---"
+          test -f output/cleaned/ngo_impact_clean.db \
+            && echo "PASS: Clean database exists" \
+            || (echo "FAIL: Clean database missing" && exit 1)
+          test -f output/cleaned/cleaning_audit_report.csv \
+            && echo "PASS: Audit report exists" \
+            || (echo "FAIL: Audit report missing" && exit 1)
+
+          # Verify BI views are materialised
+          VIEW_COUNT=$(sqlite3 output/cleaned/ngo_impact_clean.db \
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='view';")
+          echo "BI views found: $VIEW_COUNT"
+          [ "$VIEW_COUNT" -ge 5 ] \
+            && echo "PASS: All 5 BI views present" \
+            || (echo "FAIL: Expected 5 views, found $VIEW_COUNT" && exit 1)
+
+      - name: Upload clean database as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-database-py${{ matrix.python-version }}
+          path: output/cleaned/ngo_impact_clean.db
+          retention-days: 7
