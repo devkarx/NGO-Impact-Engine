@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏛️ NGO Impact Dashboard
+# 🏛️ NGO Impact Engine
 
 ### An Open-Source M&E KPI Framework for Social Impact Measurement
 
@@ -113,8 +113,8 @@ This repository provides that translation layer: a **complete, end-to-end data p
 ### 1. Clone and Set Up
 
 ```bash
-git clone https://github.com/your-org/ngo-impact-dashboard.git
-cd ngo-impact-dashboard
+git clone https://github.com/devkarx/NGO-Impact-Engine.git
+cd NGO-Impact-Engine
 
 # Create virtual environment
 python -m venv .venv
@@ -258,7 +258,7 @@ See `docs/bi_dashboard_blueprint.md` for the exact dashboard wireframe, chart ty
 ## Project Structure
 
 ```
-ngo-impact-dashboard/
+NGO-Impact-Engine/
 ├── requirements.txt                      # Python dependencies
 ├── create_bi_views.py                    # Materialise BI views in SQLite
 ├── validate_kpis.py                      # KPI query performance validator
