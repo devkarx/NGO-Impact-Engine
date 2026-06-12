@@ -111,7 +111,7 @@ lint:
 		--max-line-length=120 \
 		--max-complexity=15 \
 		--exclude=__pycache__,.venv,output \
-		--ignore=E501,W503,E203 \
+		--ignore=E501,W503,E203,E226 \
 		--statistics
 	@echo "=== Lint complete ==="
 

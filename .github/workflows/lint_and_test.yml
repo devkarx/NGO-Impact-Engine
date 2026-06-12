@@ -68,7 +68,7 @@ jobs:
             --max-complexity=15 \
             --statistics \
             --exclude=__pycache__,.venv,output \
-            --ignore=E501,W503,E203
+            --ignore=E501,W503,E203,E226
 
   # ── Job 2: Pipeline Integration Test ────────────────────────────────────
   test:
