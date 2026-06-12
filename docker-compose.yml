@@ -37,7 +37,7 @@ services:
     environment:
       # Auto-configure Metabase to use the SQLite database
       MB_DB_TYPE: h2
-      MB_DB_FILE: /metabase-data/metabase.db
+      MB_DB_FILE: /tmp/metabase.db
     depends_on:
       pipeline:
         condition: service_completed_successfully
