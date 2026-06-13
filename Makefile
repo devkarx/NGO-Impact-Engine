@@ -131,3 +131,5 @@ wipe:
 	@echo "Removing generated output..."
 	rm -rf $(OUTPUT_DIR)
 	@echo "Done. Run 'make run-all' to regenerate."
+
+# End of Makefile formatting
